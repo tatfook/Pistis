@@ -79,51 +79,63 @@ fingerprint为64字节代表16进制的字符组成，分成3段
 
 1. 请求认证的manifest
 
-    {
-      "field": "keepwork",
-      "author": "dukes",
-      "work": "test-report",
-      "identity": "87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2"
-    }
+```
+{
+  "field": "keepwork",
+  "author": "dukes",
+  "work": "test-report",
+  "identity": "87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2"
+}
+```
 
 2. 附加时间戳
 
-    {
-      "field": "keepwork",
-      "author": "dukes",
-      "work": "test-report",
-      "identity": "87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2",
-      "timestamp": "1520590199"
-    }
+```
+{
+  "field": "keepwork",
+  "author": "dukes",
+  "work": "test-report",
+  "identity": "87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2",
+  "timestamp": "1520590199"
+}
+```
 
 3. 排序
 
-    {
-      "author": "dukes",
-      "field": "keepwork",
-      "identity": "87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2",
-      "timestamp": "1520590199",
-      "work": "test-report"
-    }
+```
+{
+  "author": "dukes",
+  "field": "keepwork",
+  "identity": "87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2",
+  "timestamp": "1520590199",
+  "work": "test-report"
+}
+```
 
 4. 去格式化
 
-    {"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","timestamp":"1520590199","work":"test-report"}
+```
+{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","timestamp":"1520590199","work":"test-report"}
+```
  
 5. 生成fingerprint
 
-   $ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","timestamp":"1520590199","work":"test-report"}' | sha256sum 
-   9b84d679ad274c97b2d46e4bdf649350f9c7286c825aea6a4e0a3ba4cc27fe4d  -
+```
+$ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","timestamp":"1520590199","work":"test-report"}' | sha256sum 
+9b84d679ad274c97b2d46e4bdf649350f9c7286c825aea6a4e0a3ba4cc27fe4d  -
+```
 
 6. 存储为文件
  
-    /
-      9b/
-        84/
-          d679ad274c97b2d46e4bdf649350f9c7286c825aea6a4e0a3ba4cc27fe4d
+```
+/
+  9b/
+    84/
+      d679ad274c97b2d46e4bdf649350f9c7286c825aea6a4e0a3ba4cc27fe4d
 
-    $ mkdir -p 9b/84
-    $ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","timestamp":"1520590199","work":"test-report"}' > 9b/84/d679ad274c97b2d46e4bdf649350f9c7286c825aea6a4e0a3ba4cc27fe4d
+$ mkdir -p 9b/84
+$ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","timestamp":"1520590199","work":"test-report"}' > 9b/84/d679ad274c97b2d46e4bdf649350f9c7286c825aea6a4e0a3ba4cc27fe4d
+```
 
 ### block
 
@@ -147,6 +159,7 @@ Pistis将block信息提交到blockchain，成为blockchain一个区块的一部�
 
 
 这种对应关系记录存储到db中，表结构如下
+
 | id     | service                          | chain_block    | block            |
 |--------|----------------------------------|----------------|------------------|
 | 自增id | 区块链服务类型，目前只有ethereum | 区块的hash标识 | 提交的Pistis block hash |
@@ -160,106 +173,122 @@ Pistis通过api接口为数据提供凭证，通过web页面来提供证书，bl
 
 - 失败的api
 
-    所有失败的api都返回
-    return
-    {
-      "error": "${error_message}"
-    }
+```
+所有失败的api都返回
+return
+{
+  "error": "${error_message}"
+}
+```
 
 - 向Pistis提交证明，进行作证
 
-    POST /api/v1/manifest
-    
-    param
-    {
-      "field": "keepwork",
-      "author": "${keepwork_user_name}",
-      "work": "${keepwork_user_site_name}",
-      "id": "${keepwork_user_site_git_commit_id}"
-    }
-    
-    return
-    {
-      "field": "keepwork",
-      "author": "${keepwork_user_name}",
-      "work": "${keepwork_user_site_name}",
-      "id": "${keepwork_user_site_git_commit_id}",
-      "timestamp": "${time_when_witness}",
-      "fingerprint": "${fingerprint_that_gen}"
-    }
+```
+POST /api/v1/manifest
+
+param
+{
+  "field": "keepwork",
+  "author": "${keepwork_user_name}",
+  "work": "${keepwork_user_site_name}",
+  "id": "${keepwork_user_site_git_commit_id}"
+}
+
+return
+{
+  "field": "keepwork",
+  "author": "${keepwork_user_name}",
+  "work": "${keepwork_user_site_name}",
+  "id": "${keepwork_user_site_git_commit_id}",
+  "timestamp": "${time_when_witness}",
+  "fingerprint": "${fingerprint_that_gen}"
+}
+```
 
 - 查看证明
 
-    GET /api/v1/manifest
-    
-    param
-    {
-      "fingerprint": "${fingerprint_that_gen}"
-    }
-    
-    return
-    返回的数据根据域的不同而不同，keepwork的格式如下
-    {
-      "field": "keepwork",
-      "author": "${keepwork_user_name}",
-      "work": "${keepwork_user_site_name}",
-      "id": "${keepwork_user_site_git_commit_id}",
-      "timestamp": "${time_when_witness}",
-    }
+```
+GET /api/v1/manifest
+
+param
+{
+  "fingerprint": "${fingerprint_that_gen}"
+}
+
+return
+返回的数据根据域的不同而不同，keepwork的格式如下
+{
+  "field": "keepwork",
+  "author": "${keepwork_user_name}",
+  "work": "${keepwork_user_site_name}",
+  "id": "${keepwork_user_site_git_commit_id}",
+  "timestamp": "${time_when_witness}",
+}
+```
     
 ### 页面
 
 - 失败页面
 
-    所有失败页面都返回
+```
+所有失败页面都返回
 
-    <h1>error</h1>
-    <p>${error_message}</p>
+<h1>error</h1>
+<p>${error_message}</p>
 
-    http code 500
+http code 500
+```
 
 - Pistis证书页
 
-    证书可视化数据的信任链
+```
+证书可视化数据的信任链
 
-    GET /page/v1/cert/:fingerprint?block_hash=:block_hash
-    
-    对于keepwork来说，
-    页面内容包括
-    - 文本
-      - keepwork标识
-      - author信息
-      - work作品信息
-      - 由Pistis认证的时间（UTC+8 or UTC+0）
-    - 链接
-      - work 作品 id
-      - fingerprint
-      - Pistis block hash
-      - chain block hash
-    - 图片
-      - 图形印章（使用私钥认证）
+GET /page/v1/cert/:fingerprint?block_hash=:block_hash
+
+对于keepwork来说，
+页面内容包括
+- 文本
+  - keepwork标识
+  - author信息
+  - work作品信息
+  - 由Pistis认证的时间（UTC+8 or UTC+0）
+- 链接
+  - work 作品 id
+  - fingerprint
+  - Pistis block hash
+  - chain block hash
+- 图片
+  - 图形印章（使用私钥认证）
+```
       
 - Pistis block详情页
 
-    GET /page/v1/block/:block_hash
-    
-    页面内容包括
-    - block hash值
-    - block生成时间
-    - block生成描述
-    - block所聚合的所有manifest列表
+```
+GET /page/v1/block/:block_hash
+
+页面内容包括
+- block hash值
+- block生成时间
+- block生成描述
+- block所聚合的所有manifest列表
+```
     
 - manifest详情页
 
-    GET /page/v1/manifest/:fingerprint
+```
+GET /page/v1/manifest/:fingerprint
     
-    内容包括
-    - manifest的内容
-    - 作证时间戳
+内容包括
+- manifest的内容
+- 作证时间戳
+```
     
 - blockchain block详情页
 
-    使用公共服务，地址待定
+```
+使用公共服务，地址待定
+```
     
 草图如下
 
