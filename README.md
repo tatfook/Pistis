@@ -152,8 +152,9 @@ Pistis将block信息提交到blockchain，成为blockchain一个区块的一部�
 | 自增id | 区块链服务类型，目前只有ethereum | 区块的hash标识 | 提交的Pistis block hash |
 
 
-
 ## 程序设计
+
+Pistis通过api接口为数据提供凭证，通过web页面来提供证书，block，manifest的内容信息
 
 ### api
 
@@ -162,7 +163,7 @@ Pistis将block信息提交到blockchain，成为blockchain一个区块的一部�
     所有失败的api都返回
     return
     {
-      "error": "error message why"
+      "error": "${error_message}"
     }
 
 - 向Pistis提交证明，进行作证
@@ -208,7 +209,18 @@ Pistis将block信息提交到blockchain，成为blockchain一个区块的一部�
     
 ### 页面
 
-- Pistis提供作证证书页面
+- 失败页面
+
+    所有失败页面都返回
+
+    <h1>error</h1>
+    <p>${error_message}</p>
+
+    http code 500
+
+- Pistis证书页
+
+    证书可视化数据的信任链
 
     GET /page/v1/cert/:fingerprint?block_hash=:block_hash
     
@@ -227,7 +239,7 @@ Pistis将block信息提交到blockchain，成为blockchain一个区块的一部�
     - 图片
       - 图形印章（使用私钥认证）
       
-- Pistis block页面
+- Pistis block详情页
 
     GET /page/v1/block/:block_hash
     
@@ -237,7 +249,7 @@ Pistis将block信息提交到blockchain，成为blockchain一个区块的一部�
     - block生成描述
     - block所聚合的所有manifest列表
     
-- manifest页面
+- manifest详情页
 
     GET /page/v1/manifest/:fingerprint
     
@@ -245,12 +257,17 @@ Pistis将block信息提交到blockchain，成为blockchain一个区块的一部�
     - manifest的内容
     - 作证时间戳
     
-- chain block页面
+- blockchain block详情页
 
     使用公共服务，地址待定
     
+草图如下
 
-## 用户规则
+![pages sketch](./pages.png)
+
+## 机制
+
+### 用户
 
 对于所有用户，拥有被动方式
 - 每天一次进行作品认证
@@ -259,6 +276,7 @@ Pistis将block信息提交到blockchain，成为blockchain一个区块的一部�
 - 可以自己触发作品认证，每日多次
 
 
+### 限制
 一经认证，便已存在于历史中，无法删除
 
 ## todos
