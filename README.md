@@ -1,24 +1,24 @@
 # Pistis
 
-A server makes work trustful by using blockchain technology
+A server makes work trustful using blockchain technology
 
-> pistis [name origin](https://en.wikipedia.org/wiki/Pistis)
+> Pistis [name origin](https://en.wikipedia.org/wiki/Pistis)
 
 ## 概念设计
 
 ### manifest
 
-Pistis为数据提供凭证，证明 **某时刻某数据确实存在着**
+Pistis为数据提供凭证，证明**某时刻某数据确实存在**
 
-manifest就是用户想要获取凭证的数据，通过Pistis，为manifest作证
+manifest就是用户想要证明的数据，通过Pistis，为manifest作证
 
 ### fingerprint
 
-Pistis每一次对manifest作证，都会生成fingerprint，作为作证行为的凭证
+Pistis每一次对manifest作证，都会生成fingerprint，是作证行为的凭证
 
 Pistis通过
 - manifest内容
-- 作证行为发生的时间戳
+- 作证行为发生时刻的时间戳
 生成fingerprint
 
 一个fingerprint唯一标识一次作证行为，理论上，不可能有多个作证行为对应相同的fingerprint
@@ -30,38 +30,37 @@ Pistis通过
 block由
 1. manifest与fingerprint
 2. 描述信息
-3. 聚合行为发生的时间戳
-生成唯一的block hash
+3. 聚合行为发生时刻的时间戳
+组成，并拥有唯一的block hash标识
 
 三项输入共同决定了block hash的值，理论上，不可能有三项不同输入生成相同的block hash
 
-Pistis保留了所有block，根据hash标识，可以唯一定位到一个block，并索引到**那一时刻**所有manifest与fingerprint的**内容**
+Pistis保留所有block，根据hash标识，可以唯一定位到一个block，并索引到**那一时刻**所有manifest与fingerprint的**内容**
 
 ### blockchain block
 
-即使Pistis为manifest作证，但是Pistis本身并不可信，需要大家公认的信任源为Pistis提供信任
+即使Pistis为manifest作证，但是Pistis本身并无公信力，需要有大家公认的信任源为Pistis提供信任
 
-公共区块链得到大家的信任，将Pistis block提交至区块链区块，借助区块链为Pistis提供信任
+公共区块链就是这个信任源，将Pistis block提交至区块链区块，就可以借助区块链为Pistis提供信任
 
 ## 数据设计
 
 ### manifest
 
-不同的用户对manifest有不同的需要，这里我们希望用普适的key:value的形式来组织数据，以json来存储
+不同用户对manifest有不同的需要，我们希望用普适的key:value的形式来组织数据，以json来存储
 
 对于keepwork来说，manifest需要有如下的内容
 
-| key      | value                      | description                                                                                                                           |
-|----------|----------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| field    | keepwork                   | 为数据划分区域，便于后续为接入其它服务提供拓展性。对于keepwork，取值为keepwork。也可能为github或者其它值，field也决定了后续字段的内容 |
-| author   | ${keepwork_user_name}      | 作者名，取值keepwork的用户名                                                                                                          |
-| work     | ${keepwork_user_work_name} | 作品名，取值keepwork用户作品网站的名字                                                                                                |
-| identity | ${work_unique_id}          | 唯一标识符，唯一标识作品内容，取值网站git存储的某个commit hash                                                                        |
+| key      | value                           | description                                                                                                                             |
+|----------|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| field    | keepwork                        | 为数据划分区域，便于后续为接入其它服务提供拓展性。对于keepwork，取值为keepwork。也可能为github或者其它值。field同时决定了后续字段的内容 |
+| author   | ${keepwork_user_name}           | 作者名，取值keepwork的用户名                                                                                                            |
+| work     | ${keepwork_user_work_name}      | 作品名，取值keepwork用户作品网站的名字                                                                                                  |
+| identity | ${keepwork_user_site_commit_id} | 唯一标识符，唯一标识作品内容，取值网站数据git存储的某个commit hash                                                                        |
 
+Pistis在为manifest作证时，会附加新的timestamp:${time(now)}键值，根据key进行增序排序，再将所有数据进行SHA-256运算，生成fingerprint
 
-Pistis在为manifest作证时，会附加新的timestamp:${now}键值，根据key进行增序排序，再将所有数据进行SHA-256运算，生成fingerprint
-
-所有manifest组织为一个git仓库，仓库目录与文件按fingerprint来组织，结构为
+所有manifest组织为一个git仓库，仓库目录与文件按fingerprint来布局，结构为
 
     /
       AE/
@@ -139,35 +138,34 @@ $ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931
 
 ### block
 
-数据以git仓库管理，一个block是一个git commit，这样是block的本质
+数据以git仓库管理，一个block是一个git commit，这就是block的本质
 
     $ git add .
     $ git commit -m "generate block"
 
 ### blockchain block
 
-Pistis将block信息提交到blockchain，成为blockchain一个区块的一部分，借此来为Pistis提供信任
+Pistis将block信息提交到blockchain，成为区块链一个区块的一部分
 
 同样的，每个区块也有唯一的hash标识，
 每当提交一个block，并成功写入区块，需要将block与blockchain block的对应关系记录下来
 
-- 一个block可以没有写入blockchain block
+- 一个block可能没有写入blockchain block
 - 一个block可能写入了多个blockchain block
 - 多个block可能写入了同一个blockchain block
 
 因此，block与chain block是多对多的关系
 
-
 这种对应关系记录存储到db中，表结构如下
 
-| id     | service                          | chain_block    | block            |
-|--------|----------------------------------|----------------|------------------|
+| id     | service                          | chain_block    | block                   |
+|--------|----------------------------------|----------------|-------------------------|
 | 自增id | 区块链服务类型，目前只有ethereum | 区块的hash标识 | 提交的Pistis block hash |
 
 
 ## 程序设计
 
-Pistis通过api接口为数据提供凭证，通过web页面来提供证书，block，manifest的内容信息
+Pistis通过api接口为数据提供凭证，通过web页面来提供证书，block，manifest等内容信息
 
 ### api
 
@@ -181,7 +179,7 @@ return
 }
 ```
 
-- 向Pistis提交证明，进行作证
+- 向Pistis提交manifest，进行数据作证
 
 ```
 POST /api/v1/manifest
@@ -205,14 +203,14 @@ return
 }
 ```
 
-- 查看证明
+- 查看manifest
 
 ```
 GET /api/v1/manifest
 
 param
 {
-  "fingerprint": "${fingerprint_that_gen}"
+  "fingerprint": "${fingerprint}"
 }
 
 return
@@ -221,7 +219,7 @@ return
   "field": "keepwork",
   "author": "${keepwork_user_name}",
   "work": "${keepwork_user_site_name}",
-  "id": "${keepwork_user_site_git_commit_id}",
+  "id": "${keepwork_user_site_commit_id}",
   "timestamp": "${time_when_witness}",
 }
 ```
@@ -234,9 +232,8 @@ return
 所有失败页面都返回
 
 <h1>error</h1>
+<h2>${http_code}</h2>
 <p>${error_message}</p>
-
-http code 500
 ```
 
 - Pistis证书页
@@ -244,9 +241,8 @@ http code 500
 ```
 证书可视化数据的信任链
 
-GET /page/v1/cert/:fingerprint?block_hash=:block_hash
+GET /page/v1/cert/:fingerprint[?block_hash=:block_hash]
 
-对于keepwork来说，
 页面内容包括
 - 文本
   - keepwork标识
@@ -254,12 +250,12 @@ GET /page/v1/cert/:fingerprint?block_hash=:block_hash
   - work作品信息
   - 由Pistis认证的时间（UTC+8 or UTC+0）
 - 链接
-  - work 作品 id
+  - work作品id
   - fingerprint
   - Pistis block hash
-  - chain block hash
+  - blockchain block hash
 - 图片
-  - 图形印章（使用私钥认证）
+  - 图形印章（使用私钥认证?）
 ```
       
 - Pistis block详情页
@@ -296,17 +292,17 @@ GET /page/v1/manifest/:fingerprint
 
 ## 机制
 
-### 用户
+### 用户方案
 
 对于所有用户，拥有被动方式
 - 每天一次进行作品认证
 
-对于其中的VIP用户，提供主动方式
+对于VIP用户，附加提供主动方式
 - 可以自己触发作品认证，每日多次
 
-
 ### 限制
-一经认证，便已存在于历史中，无法删除
+数据一经认证，便存在于信任历史中，无法删除
+
 
 ## todos
 
