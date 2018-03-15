@@ -1,6 +1,6 @@
 # Pistis
 
-A server makes work trustful using blockchain technology
+A server makes work trustful using SHA, GPG and BlockChain technology
 
 > Pistis [name origin](https://en.wikipedia.org/wiki/Pistis)
 
@@ -12,67 +12,95 @@ Pistis为数据提供凭证，证明**某时刻某数据确实存在**
 
 manifest就是用户想要证明的数据，通过Pistis，为manifest作证
 
-### fingerprint
+#### fingerprint
 
-Pistis每一次对manifest作证，都会生成fingerprint，是作证行为的凭证
+fingerprint是manifest的指纹，由manifest的内容唯一决定
 
-Pistis通过
-- manifest内容
-- 作证行为发生时刻的时间戳
-生成fingerprint
+理论上，不可能有不同内容的manifest拥有相同fingerprint
 
-一个fingerprint唯一标识一次作证行为，理论上，不可能有多个作证行为对应相同的fingerprint
+#### signature
+
+签名是指Pistis用自身的名义，为**某时刻某数据存在性**的生成凭证
+
+三个要素
+- Pistis本身
+- 时间要素
+- 数据内容
+共同决定了签名的内容
+
+理论上，只要有一者有变动，生成的签名就截然不同
 
 ### block
 
-在Pistis中，**某一时刻**所有manifest与fingerprint的**集合**，聚合构成一个block
+在Pistis中，**某一时刻**所有manifest，fingerprint，signature的**集合**，聚合构成一个block
 
 block由
-1. manifest与fingerprint
-2. 描述信息
-3. 聚合行为发生时刻的时间戳
+1. manifest，fingerprint，signature的集合
+2. block描述信息
+3. 聚合行为发生的时间
 组成，并拥有唯一的block hash标识
 
-三项输入共同决定了block hash的值，理论上，不可能有三项不同输入生成相同的block hash
+理论上，不可能有三项不同输入生成相同的block hash
 
-Pistis保留所有block，根据hash标识，可以唯一定位到一个block，并索引到**那一时刻**所有manifest与fingerprint的**内容**
+Pistis保留所有block，根据hash标识，可以唯一定位到一个block，并索引到**那一时刻**所有manifest，fingerprint，signature的**内容**
 
 ### blockchain block
 
-即使Pistis为manifest作证，但是Pistis本身并无公信力，需要有大家公认的信任源为Pistis提供信任
+即使Pistis为manifest作证，但是Pistis没有绝对公信力（比如可能在作证时间上造假），需要借助大家公认的信任源为Pistis提供信任
 
-公共区块链就是这个信任源，将Pistis block提交至区块链区块，就可以借助区块链为Pistis提供信任
+公共区块链就是这个信任源，将Pistis block信息（代表所有manifest）提交至区块链区块，借助区块链证明Pistis的聚合行为
+
+理论上
+- blockchain block生成时间晚于Pistis block生成时间
+- block生成时间晚于当前block包含的所有manifest被Pistis作证的时间
+
+### certificate
+
+上述提到的所有概念都是为了一个目的：**为用户数据提供信任**
+
+它们一起建立了信任的链条，证书是信任链条的可视化凭证，包含
+- manifest信息
+- block信息
+- blockchain block信息
+并由Pistis唯一颁发
 
 ## 数据设计
 
 ### manifest
 
-不同用户对manifest有不同的需要，我们希望用普适的key:value的形式来组织数据，以json来存储
+不同用户对manifest有不同的需要，这里希望用普适的key:value的形式来组织数据，以json来存储
 
 对于keepwork来说，manifest需要有如下的内容
 
 | key      | value                           | description                                                                                                                             |
 |----------|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| field    | keepwork                        | 为数据划分区域，便于后续为接入其它服务提供拓展性。对于keepwork，取值为keepwork。也可能为github或者其它值。field同时决定了后续字段的内容 |
+| field    | keepwork                        | 为数据划分区域，便于后续为接入其它服务提供拓展性。对于keepwork，取值为keepwork，也可能为github或者其它值。field同时决定了后续字段的内容 |
 | author   | ${keepwork_user_name}           | 作者名，取值keepwork的用户名                                                                                                            |
 | work     | ${keepwork_user_work_name}      | 作品名，取值keepwork用户作品网站的名字                                                                                                  |
 | identity | ${keepwork_user_site_commit_id} | 唯一标识符，唯一标识作品内容，取值网站数据git存储的某个commit hash                                                                        |
 
-Pistis在为manifest作证时，会附加新的timestamp:${time(now)}键值，根据key进行增序排序，再将所有数据进行SHA-256运算，生成fingerprint
+Pistis在为manifest作证时，会
+1. 根据key进行增序排序
+2. 去格式化
+3. 对manifest使用SHA256运算，生成fingerprint，并存储manifest
+4. 对manifest使用GPG进行签名，并存储签名
 
-所有manifest组织为一个git仓库，仓库目录与文件按fingerprint来布局，结构为
+所有manifest组织为一个git仓库，所有目录与文件按fingerprint来布局，结构为
 
-    /
-      AE/
-        1C/
-          2EF......AD3
+```
+  /
+    05/
+      58/
+        31cacaa619041bd5a26766049696653e6ff45f9ee4461c8e1fc7a5b38b10
+        31cacaa619041bd5a26766049696653e6ff45f9ee4461c8e1fc7a5b38b10.asc
+```
 
 fingerprint为64字节代表16进制的字符组成，分成3段
 - 1-2字节
 - 3-4字节
 - 5-64字节
 
-前两部分组织为目录与子目录，最后部分为文件名，存储着manifest与timestamp组成的json文件
+前两部分组织为目录与子目录，最后部分为文件名，存储着manifest组成的json文件
 
 示例：
 
@@ -87,53 +115,47 @@ fingerprint为64字节代表16进制的字符组成，分成3段
 }
 ```
 
-2. 附加时间戳
-
-```
-{
-  "field": "keepwork",
-  "author": "dukes",
-  "work": "test-report",
-  "identity": "87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2",
-  "timestamp": "1520590199"
-}
-```
-
-3. 排序
+2. 排序
 
 ```
 {
   "author": "dukes",
   "field": "keepwork",
   "identity": "87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2",
-  "timestamp": "1520590199",
   "work": "test-report"
 }
 ```
 
-4. 去格式化
+3. 去格式化
 
 ```
-{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","timestamp":"1520590199","work":"test-report"}
+{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","work":"test-report"}
 ```
  
-5. 生成fingerprint
+4. 生成fingerprint
 
 ```
-$ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","timestamp":"1520590199","work":"test-report"}' | sha256sum 
-9b84d679ad274c97b2d46e4bdf649350f9c7286c825aea6a4e0a3ba4cc27fe4d  -
+$ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","work":"test-report"}' | sha256sum 
+6f7a25580ffc9061ad5ee9c16de3ecfccd3dec5c33d87a23e78a89a09443ca08  -
 ```
 
-6. 存储为文件
+
+5. 存储manifest
  
 ```
 /
-  9b/
-    84/
-      d679ad274c97b2d46e4bdf649350f9c7286c825aea6a4e0a3ba4cc27fe4d
+  6f/
+    7a/
+      25580ffc9061ad5ee9c16de3ecfccd3dec5c33d87a23e78a89a09443ca08
 
 $ mkdir -p 9b/84
-$ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","timestamp":"1520590199","work":"test-report"}' > 9b/84/d679ad274c97b2d46e4bdf649350f9c7286c825aea6a4e0a3ba4cc27fe4d
+$ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931b4ed743ecf8aa98f2","work":"test-report"}' > 6f/7a/25580ffc9061ad5ee9c16de3ecfccd3dec5c33d87a23e78a89a09443ca08
+```
+
+6. 为manifest签名，并存储签名
+
+```
+$ gpg --armor --detach-sign  6f/7a/25580ffc9061ad5ee9c16de3ecfccd3dec5c33d87a23e78a89a09443ca08
 ```
 
 ### block
@@ -142,6 +164,27 @@ $ echo '{"author":"dukes","field":"keepwork","identity":"87f90ee50c0e3e1808a7931
 
     $ git add .
     $ git commit -m "generate block"
+
+
+每一个block的生成，也是一项行为，也作为一个manifest来存储，结构如
+
+| key         | value        | description       |
+|-------------|--------------|-------------------|
+| field       | pistis/block | 标识数据域        |
+| hash        |              | block的hash标识   |
+| description |              | block块的描述内容 |
+| timestamp   |              | block块生成的时间 |
+
+示例：
+
+```
+{
+  "field": "pistis/block",
+  "hash": "d0aa4386ac533dd6e80dad1831f6b841b04ff931",
+  "description": "gather all vip works",
+  "timestamp": "1520994147"
+}
+```
 
 ### blockchain block
 
@@ -154,18 +197,57 @@ Pistis将block信息提交到blockchain，成为区块链一个区块的一部�
 - 一个block可能写入了多个blockchain block
 - 多个block可能写入了同一个blockchain block
 
-因此，block与chain block是多对多的关系
+因此，block与chain block是多对多的关系，
+为了保持简单一对一关系，要在内部机制确保
+- 一个block只与一个blockchain block相对应
 
-这种对应关系记录存储到db中，表结构如下
 
-| id     | service                          | chain_block    | block                   |
-|--------|----------------------------------|----------------|-------------------------|
-| 自增id | 区块链服务类型，目前只有ethereum | 区块的hash标识 | 提交的Pistis block hash |
+这种对应关系也作为一个manifest来存储，结构如
 
+| key                   | value             | description               |
+|-----------------------|-------------------|---------------------------|
+| field                 | pistis/blockchain | 标识数据域                |
+| service               | ethereum          | 区块链服务类型            |
+| block_hash            |                   | Pistis block的fingerprint |
+| blockchain_block_hash |                   | 区块链区块的hash标识      |
+
+示例：
+
+```
+{
+  "field": "pistis/blockchain",
+  "service": "ethereum",
+  "block_hash": "77363f7f08e3d53a82eb6d335eb214fa386babbc106ab09a528262dee24061be",
+  "blockchain_block_hash": "f5615e596a6b7388bc14c143455841d0c6ce6e4b3ff4170285093763c8e49b6b"
+}
+```
+
+### certificate
+
+证书用来记录信任链
+
+一个证书也作为一个manifest来存储，结构如
+
+| key              | value              | description                                                                     |
+|------------------|--------------------|---------------------------------------------------------------------------------|
+| field            | pistis/certificate | 标识数据域                                                                      |
+| manifest         |                    | manifest的fingerprint。不是manifest的内容，具体内容可以从Pistis中索取，下面同理 |
+| block            |                    | Pistis block的fingerprint                                                       |
+| blockchain_block |                    | blockchain block的fingerprint                                                   |
+
+示例：
+```
+{
+  "field": "pistis/certificate",
+  "manifest": "156dc288a7de3865825b581c8981ed42e0d19f60636fb04b510ccfc2412e9911",
+  "block": "96354db22b7452b5d20ec252c82fb45820d339dbe0a2f853eaf54118058ad1b4",
+  "blockchain_block": "d803ef6503a975ed7c8f560d82705b60c0ad3ce9d21a0ac63b5824596d198989"
+}
+```
 
 ## 程序设计
 
-Pistis通过api接口为数据提供凭证，通过web页面来提供证书，block，manifest等内容信息
+Pistis通过api接口为数据作证，通过web页面来提供证书等信息
 
 ### api
 
@@ -198,8 +280,10 @@ return
   "author": "${keepwork_user_name}",
   "work": "${keepwork_user_site_name}",
   "id": "${keepwork_user_site_git_commit_id}",
-  "timestamp": "${time_when_witness}",
-  "fingerprint": "${fingerprint_that_gen}"
+  "_meta_": {
+    "fingerprint": "${fingerprint_that_gen}",
+    "signature": "${signature_by_pistis}"
+  }
 }
 ```
 
@@ -214,17 +298,80 @@ param
 }
 
 return
-返回的数据根据域的不同而不同，keepwork的格式如下
+返回的数据根据域的不同而不同，但是fingerprint与signature保持不变，keepwork的格式如下
 {
   "field": "keepwork",
   "author": "${keepwork_user_name}",
   "work": "${keepwork_user_site_name}",
-  "id": "${keepwork_user_site_commit_id}",
-  "timestamp": "${time_when_witness}",
+  "id": "${keepwork_user_site_git_commit_id}",
+  "_meta_": {
+    "fingerprint": "${fingerprint_that_gen}",
+    "signature": "${signature_by_pistis}"
+  }
+}
+
+```
+
+- 查找manifest
+
+```
+GET /api/v1/manifest
+
+示例：
+param
+{
+  "field": "keepwork",
+  .....
+  "key": "value"
+}
+
+return
+返回数据为列表
+{
+  "manifests": [
+    {
+      "field": "keepwork",
+      "author": "${keepwork_user_name}",
+      "work": "${keepwork_user_site_name}",
+      "id": "${keepwork_user_site_git_commit_id}",
+      "_meta_": {
+        "fingerprint": "${fingerprint_that_gen}",
+        "signature": "${signature_by_pistis}"
+      }
+    }
+  ]
 }
 ```
     
-### 页面
+### page
+
+#### 页面框架
+
+所有页面本质上都是在呈现manifest资源，
+manifest以filed来分类，目前有如下几类
+- 用户提交的manifest，如keepwork
+- Pistis block
+- blockchain block 区块链与Pistis block对应关系
+- Pistis certificate 证书
+
+对于每一个manifest，Pistis都有相应的签名作为凭证，所以每一个页面的整体框架是
+相同的，包含
+- manifest信息
+- Pistis 签名
+- web前端提供的verify机制（由keyserver获取Pistis公钥，将数据与签名进行verify）
+
+
+相应的，所有页面的url也保持一致
+- 所有页面地址都是`/page/v1/manifest/:fingerprint`
+  - fingerprint是manifest的指纹，Pistis由指纹索引到相应manifest，再依据field来呈现不同
+    类型的页面
+- 由manifest内容进行搜索`/page/v1/manifest?field=...[&key=value]`
+  - 搜索必须指定field
+  - 搜索可以使用多个字段，字段内容由field决定
+    - 如果manifest不存在，则无结果提供
+    - 如果manifest存在，提供列表供选择
+
+#### 页面设计
 
 - 失败页面
 
@@ -236,54 +383,48 @@ return
 <p>${error_message}</p>
 ```
 
-- Pistis证书页
+- manifest详情页
 
 ```
-证书可视化数据的信任链
-
-GET /page/v1/cert/:fingerprint[?block_hash=:block_hash]
-
 页面内容包括
-- 文本
-  - keepwork标识
-  - author信息
-  - work作品信息
-  - 由Pistis认证的时间（UTC+8 or UTC+0）
-- 链接
-  - work作品id
-  - fingerprint
-  - Pistis block hash
-  - blockchain block hash
-- 图片
-  - 图形印章（使用私钥认证?）
+- manifest本身
+
+除此之外，还要呈现出manifest的信任链建立的进度
+- 是否被block聚合
+- 聚合其的block是否已经与blockchain建立联系
+- 是否已经生成了证书
 ```
-      
+ 
 - Pistis block详情页
 
 ```
-GET /page/v1/block/:block_hash
-
 页面内容包括
 - block hash值
 - block生成时间
 - block生成描述
-- block所聚合的所有manifest列表
-```
-    
-- manifest详情页
-
-```
-GET /page/v1/manifest/:fingerprint
-    
-内容包括
-- manifest的内容
-- 作证时间戳
 ```
     
 - blockchain block详情页
 
 ```
-使用公共服务，地址待定
+页面内容包括
+- blockchain使用服务
+- blockchain block hash值
+- block hash值
+```
+
+- Pistis证书页
+
+```
+页面内容包括
+- keepwork标识
+- author名称
+- work名称
+- work作品id
+- manifest fingerprint
+- Pistis block fingerprint
+- blockchain block fingerprint
+- 证书印章
 ```
     
 草图如下
@@ -294,11 +435,10 @@ GET /page/v1/manifest/:fingerprint
 
 ### 用户方案
 
-对于所有用户，拥有被动方式
-- 每天一次进行作品认证
-
-对于VIP用户，附加提供主动方式
-- 可以自己触发作品认证，每日多次
+| 用户      | 方案             |
+|-----------|------------------|
+| VIP用户   | 每天一次作品认证 |
+| 非VIP用户 | 每周一次作品认证 |
 
 ### 限制
 数据一经认证，便存在于信任历史中，无法删除
@@ -310,5 +450,6 @@ GET /page/v1/manifest/:fingerprint
 - help page: how it works
 - server log tool
 - server cron task
-- private token 权限认证机制
+- server 容错和收敛性
+- private token 权限认证
 
