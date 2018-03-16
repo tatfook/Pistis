@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+    <head>
+        {% block head %}
+        <meta charset="UTF-8"/>
+        <title>pistis</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        {% endblock %}
+    </head>
+    <body>
+        <div id="content">
+        {% block content %}
+        {% endblock %}
+        </div>
+        <div id="footer">
+        {% block footer %}
+        {% endblock %}
+        </div>
+    </body>
+</html>
