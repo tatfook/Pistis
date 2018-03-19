@@ -1,11 +1,12 @@
 from flask import session, redirect, url_for, escape, request
-from flask import render_template
+from flask import render_template, json, jsonify
 from pistis import app
-import json, os
+import os
 
 # set the secret key.  keep this really secret:
 app.secret_key = b',\x90\xebYS\xd1\xfa(%\x91s\xf3\x9a\xb9^\xe1x\xf5\xb3\xac\x98\xf7i\xaf\x18V'
 app.config['STORE_ROOT'] = 'store'
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 @app.route('/')
 def index():
@@ -40,7 +41,7 @@ def index():
 # store.git/
 #   v1/
 #     manifests/
-#       ${field}/
+#       ${field}/                    only keepwork
 #         ${author}/
 #           ${work}/
 #             manifest.json
@@ -51,29 +52,51 @@ def index():
 #
 @app.route('/api/v1/manifest', methods=['POST'])
 def add_manifest():
-    # parse json data
     manifest = request.get_json(silent=True)
     if manifest is None:
-        return json.dumps(
-            dict(error='parse json failed')
+        return jsonify(error='manifest not exists')
+
+    if 'field' not in manifest:
+        return jsonify(
+            error='key "field" not exists'
         )
-    # check json keys
-    if not all (k in manifest for k in ("field", "author", "work", "identity")):
-        return json.dumps(
-            dict(error='manifest is not invalid')
-            )
+    if manifest['field'] not in ['keepwork']:
+        return jsonify(
+            error='unsupported field {field}'.format(field=manifest['field'])
+        )
+    if manifest['field'] == 'keepwork' and (not all (k in manifest for k in ("field", "author", "work", "identity"))):
+        return jsonify(
+            error='incomplete manifest for field keepwork'
+        )
+
     # write file
     store_root = app.config['STORE_ROOT']
-    return json.dumps(manifest)
+    store_path = '{root}/v1/manifests/{field}/{author}/{work}/manifest.json'.format(
+        root=store_root,
+        field=manifest['field'],
+        author=manifest['author'],
+        work=manifest['work'],
+    )
+    store_dir = os.path.dirname(store_path)
+    if not os.path.isdir(store_dir):
+        os.makedirs(store_dir)
+
+    with open(store_path, 'w') as f:
+        f.write(json.dumps(manifest))
+
+    return jsonify(manifest)
 
 
 # GET /api/v1/manifest
 #
-# - must: field=
-# - opt:  author=
-# - opt:  work=
-# - opt:  identity=
+# param
+# - url: keepwork.com/dukes/test-report
 #
+# extract
+# - field=
+# - author=
+# - work=
+# from url
 @app.route('/api/v1/manifest', methods=['GET'])
 def search_manifest():
     pass
@@ -84,5 +107,4 @@ def search_manifest():
 @app.route('/page/v1/manifest', methods=['GET'])
 def search_manifest_page():
     pass
-
 

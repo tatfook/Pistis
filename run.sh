@@ -11,3 +11,6 @@ if [[ $1 == "shell" ]]; then
     flask shell
 fi
 
+if [[ $1 == "test" ]]; then
+    flask test
+fi
