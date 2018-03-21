@@ -1,7 +1,9 @@
 from flask import session, redirect, url_for, escape, request
 from flask import render_template, json, jsonify
 from pistis import app
+from dulwich import porcelain as git
 import os
+import io
 
 # set the secret key.  keep this really secret:
 app.secret_key = b',\x90\xebYS\xd1\xfa(%\x91s\xf3\x9a\xb9^\xe1x\xf5\xb3\xac\x98\xf7i\xaf\x18V'
@@ -9,7 +11,6 @@ app.secret_key = b',\x90\xebYS\xd1\xfa(%\x91s\xf3\x9a\xb9^\xe1x\xf5\xb3\xac\x98\
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 # POST /api/v1/manifest
 #
@@ -44,8 +45,8 @@ def index():
 #           ${work}/
 #             manifest.json
 #     blockchains/
-#       ${service}/   ethereum or bitcoin
-#         ${store.git commit hash}/
+#       ${store.git commit hash}/
+#         ${service}/   ethereum or bitcoin
 #           record.json
 #
 @app.route('/api/v1/manifest', methods=['POST'])
@@ -87,17 +88,117 @@ def add_manifest():
 
 # GET /api/v1/manifest
 #
-# param
+# js parse url
 # - url: keepwork.com/dukes/test-report
 #
-# extract
+# param
 # - field=
 # - author=
 # - work=
-# from url
+#
+# return
+#   {"error": "message"}
+# or
+#   {"data": []}
+# or
+#   {
+#     "data": [
+#       {
+#         "manifest": {
+#           "field": "keepwork",
+#           "author": "dukes",
+#           "work": "test-report",
+#           "identity": "f844aa8d4ec646c1976a0fde5257767f2387d425"
+#         },
+#         "pistis": {
+#           "hash": "f8b18b2caa3ea7b5aadca8867a41b96c745a0257"
+#         },
+#         "blockchain": {
+#           "ethereum": {
+#             "hash": "5fa3fd4d93662491edf4c955b4e80fbc85a97d2eb30332d5b557abcad7d659a8"
+#           },
+#           "bitcoin": {
+#             "hash": "67deccc0e3aae917d2cc12f8e4ac1aa17284f12ff01829d5b4f984f359c2e383"
+#           }
+#         }
+#       }
+#     ]
+#   }
+#
 @app.route('/api/v1/manifest', methods=['GET'])
 def search_manifest():
-    pass
+    query = request.args
+    if 'field' not in query:
+        return jsonify(error='key "field" not exists')
+
+    field = query['field']
+    if field not in ['keepwork']:
+        return jsonify(error='unsupported field %s' % field)
+
+    if field == 'keepwork' and (not all (k in query for k in ('field', 'author', 'work'))):
+        return jsonify(error='incomplete query condition')
+
+    store_root = app.config['STORE_ROOT']
+    repo = git.Repo(store_root)
+
+    path = 'v1/manifests/${field}/${author}/${work}/manifest.json'.format(
+        field=field,
+        author=query['author'],
+        work=query['work']
+    )
+
+    output = io.StringIO()
+    git.log(repo=store_root, paths=[path.encode()], outstream=output)
+    commits = output.getvalue().splitlines()
+    output.close()
+
+    if len(commits) == 0:
+        return jsonify(data=list())
+
+    data = []
+    for commit_hash in map(lambda l: l.split()[-1],
+                           filter(lambda line: line.startswith('commit: '),
+                                  commits)):
+        output = io.StringIO()
+        git.ls_tree(repo=store_root, treeish=commit_hash.encode(), outstream=output)
+        trees = output.getvalue().splitlines()
+        output.close()
+
+        blob_hash = list(
+            map(lambda l: l.split()[2],
+                filter(lambda line: line.endswith(path), trees))
+        )[0]
+        blob = repo.get_object(blob_hash.encode())
+        blob_content = blob.data.decode()
+
+        blockchain_data = dict()
+        for service in ['ethereum', 'bitcoin']:
+            record_path = '%s/v1/blockchains/%s/%s/record.json'%(store_root, commit_hash, service)
+            if os.path.exists(record_path):
+                blockchain_data[service] = json.loads(record_path)
+
+        data.push(
+            dict(
+                manifest=json.loads(blob_content),
+                pistis=dict(
+                    hash=commit_hash
+                ),
+                blockchain=blockchain_data
+            )
+        )
+
+    return jsonify(data=data)
+
+
+
+
+
+
+
+    return jsonify(data=list())
+
+
+
 
 
 
