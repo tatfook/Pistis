@@ -1,5 +1,10 @@
 from flask import Flask
+from flask_apscheduler import APScheduler
+
 import unittest
+from dulwich import porcelain as git
+import glob
+import time
 
 app = Flask(__name__)
 
@@ -8,5 +13,41 @@ def test_commmand():
     discover = unittest.defaultTestLoader.discover('.', pattern='*_tests.py')
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(discover)
+
+
+class Config(object):
+    STORE_ROOT = 'store'
+    JSONIFY_PRETTYPRINT_REGULAR = False
+
+    JOBS = [
+        {
+            'id': 'snapshot',
+            'func': 'pistis:snapshot',
+            'trigger': 'interval',
+            'seconds': 30
+        }
+    ]
+    SCHEDULER_API_ENABLED = True
+
+def job1(a, b):
+    print(str(a) + ' ' + str(b))
+
+def snapshot():
+    store_root = app.config['STORE_ROOT']
+    files = glob.glob('%s/**/*.json'%store_root, recursive=True)
+    print(store_root, files)
+
+    git.add(repo=store_root, paths=files)
+    print('git add')
+    git.commit(repo=store_root, message='manifest snapshot at %s'%(time.strftime("%Y-%m-%d %H:%M:%S %Z%z", time.localtime())))
+    print('git commit')
+
+
+app.config.from_object(Config())
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+# scheduler.start()
+
 
 import pistis.views

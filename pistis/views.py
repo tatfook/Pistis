@@ -5,8 +5,6 @@ import os
 
 # set the secret key.  keep this really secret:
 app.secret_key = b',\x90\xebYS\xd1\xfa(%\x91s\xf3\x9a\xb9^\xe1x\xf5\xb3\xac\x98\xf7i\xaf\x18V'
-app.config['STORE_ROOT'] = 'store'
-app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 @app.route('/')
 def index():
