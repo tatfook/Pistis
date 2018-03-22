@@ -10,6 +10,7 @@ class ApiTestCase(unittest.TestCase):
         pistis.app.testing = True
         pistis.app.config['STORE_ROOT'] = 'store_test'
         self.client = pistis.app.test_client()
+        self.maxDiff = None
 
     def tearDown(self):
         pass
@@ -63,18 +64,18 @@ class ApiTestCase(unittest.TestCase):
         # can't find anything
         self.assertEqual(
             req(field='keepwork', author='aha', work='everhome'),
-            dict(data=list())
+            dict(data=[])
         )
         # manifest not witness by blockchain
         self.assertEqual(
             req(field='keepwork', author='dukes', work='test-report'),
-            dict(data=list())
+            dict(data=[])
         )
 
         self.assertEqual(
             req(field='keepwork', author='duting3', work='haqi'),
             dict(
-                data=list(
+                data=[
                     dict(
                         manifest=dict(
                             field='keepwork',
@@ -94,32 +95,14 @@ class ApiTestCase(unittest.TestCase):
                             ),
                         )
                     )
-                )
+                ]
             )
         )
+        # return every version that manifest changes
         self.assertEqual(
             req(field='keepwork', author='keep2', work='paracraft'),
             dict(
-                data=list(
-                    dict(
-                        manifest=dict(
-                            field='keepwork',
-                            author='keep2',
-                            work='paracraft',
-                            identity='5c1e9ce71b7862d568a75ef5b13562993cc1f9b4'
-                        ),
-                        pistis=dict(
-                            hash='49d8396a7ad575f07df9b65b52f1e36cb7c25738'
-                        ),
-                        blockchain=dict(
-                            ethereum=dict(
-                                hash='672ebe4917783964d70c53f88d127ef7610be3414c1372a69a4f08c91ddca1c7'
-                            ),
-                            bitcoin=dict(
-                                hash='6db2becaf27dd73bbf03bed2ab0e7e905299830dbed61a4c1fb34e3be830dd69'
-                            ),
-                        )
-                    ),
+                data=[
                     dict(
                         manifest=dict(
                             field='keepwork',
@@ -139,6 +122,6 @@ class ApiTestCase(unittest.TestCase):
                             ),
                         )
                     )
-                )
+                ]
             )
         )

@@ -1,7 +1,6 @@
 from flask import session, redirect, url_for, escape, request
 from flask import render_template, json, jsonify
-from pistis import app
-from dulwich import porcelain as git
+from pistis import app, git
 import os
 import io
 
@@ -141,11 +140,13 @@ def search_manifest():
     store_root = app.config['STORE_ROOT']
     repo = git.Repo(store_root)
 
-    path = 'v1/manifests/${field}/${author}/${work}/manifest.json'.format(
+    path = 'v1/manifests/{field}/{author}/{work}/manifest.json'.format(
         field=field,
         author=query['author'],
         work=query['work']
     )
+
+
 
     output = io.StringIO()
     git.log(repo=store_root, paths=[path.encode()], outstream=output)
@@ -153,9 +154,10 @@ def search_manifest():
     output.close()
 
     if len(commits) == 0:
-        return jsonify(data=list())
+        return jsonify(data=[])
 
-    data = []
+
+    res_data = []
     for commit_hash in map(lambda l: l.split()[-1],
                            filter(lambda line: line.startswith('commit: '),
                                   commits)):
@@ -175,9 +177,11 @@ def search_manifest():
         for service in ['ethereum', 'bitcoin']:
             record_path = '%s/v1/blockchains/%s/%s/record.json'%(store_root, commit_hash, service)
             if os.path.exists(record_path):
-                blockchain_data[service] = json.loads(record_path)
+                with open(record_path, 'r') as f:
+                    record_content = f.read()
+                blockchain_data[service] = json.loads(record_content)
 
-        data.push(
+        res_data.append(
             dict(
                 manifest=json.loads(blob_content),
                 pistis=dict(
@@ -187,19 +191,7 @@ def search_manifest():
             )
         )
 
-    return jsonify(data=data)
-
-
-
-
-
-
-
-    return jsonify(data=list())
-
-
-
-
+    return jsonify(data=res_data)
 
 
 
