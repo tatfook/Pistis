@@ -1,16 +1,25 @@
-{% extends "layout.html" %}
-
-{% block content %}
+{% extends "layout.html" %} {% block content %}
 <div class="ui middle aligned center aligned text container">
     <div class="column">
-    <img alt="" src="{{ url_for('static', filename='logo.png') }}"/>
-    <div class="ui fluid icon labeled input">
-        <div class="ui label">
-            http://
+        <img alt="" src="{{ url_for('static', filename='logo.png') }}" />
+
+        <div class="ui big form">
+            <div class="field ui fluid icon labeled input">
+                <div class="ui label">
+                    http://keepwork.com/
+                </div>
+
+                <input name="query" type="text" placeholder="dukes/paracraft">
+                <i class="circular link search icon button submit"></i>
+            </div>
+            <div class="ui error message">
+            </div>
         </div>
-        <input type="text" placeholder="keepwork.com/dukes/paracraft">
-        <i class="circular link search icon"></i>
-        </div>
+
+
     </div>
 </div>
+
+{% endblock %} {% block footer %}
+<script src="{{ url_for('static', filename='search.js') }}"></script>
 {% endblock %}

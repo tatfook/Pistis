@@ -50,4 +50,5 @@ guard 'livereload' do
   watch(%r{app/helpers/.+\.rb})
   watch(%r{config/locales/.+\.yml})
   watch(%r{pistis/templates/.+\.html})
+  watch(%r{pistis/static/.+\.js})
 end

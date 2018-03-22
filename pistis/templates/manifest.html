@@ -1,16 +1,21 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="ui middle aligned center aligned text container">
-    <div class="column">
+<div class="ui text container">
     <img alt="" src="{{ url_for('static', filename='logo.png') }}"/>
     <div class="ui fluid icon labeled input">
         <div class="ui label">
-            http://
+            http://keepwork.com/
         </div>
-        <input type="text" placeholder="keepwork.com/dukes/paracraft">
+        <input type="text" placeholder="dukes/paracraft">
         <i class="circular link search icon"></i>
-        </div>
     </div>
 </div>
+
+{% for item in data %}
+<p>
+    {{ item.pistis.hash }}
+</p>
+{% endfor %}
+
 {% endblock %}

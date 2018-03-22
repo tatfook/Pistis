@@ -118,7 +118,7 @@ def add_manifest():
 #   }
 #
 @app.route('/api/v1/manifest', methods=['GET'])
-def search_manifest():
+def search_manifest_api():
     query = request.args
     if 'field' not in query:
         return jsonify(error='key "field" not exists')
@@ -130,15 +130,19 @@ def search_manifest():
     if field == 'keepwork' and (not all (k in query for k in ('field', 'author', 'work'))):
         return jsonify(error='incomplete query condition')
 
+    return jsonify(
+        data=search_manifest(field, query['author'], query['work'])
+    )
+
+def search_manifest(field, author, work):
     store_root = app.config['STORE_ROOT']
     repo = git.Repo(store_root)
 
     path = 'v1/manifests/{field}/{author}/{work}/manifest.json'.format(
         field=field,
-        author=query['author'],
-        work=query['work']
+        author=author,
+        work=work
     )
-
 
     output = io.StringIO()
     git.log(repo=store_root, paths=[path.encode()], outstream=output)
@@ -146,10 +150,10 @@ def search_manifest():
     output.close()
 
     if len(commits) == 0:
-        return jsonify(data=[])
+        return []
 
 
-    res_data = []
+    data = []
     for commit_hash in map(lambda l: l.split()[-1],
                            filter(lambda line: line.startswith('commit: '),
                                   commits)):
@@ -173,7 +177,7 @@ def search_manifest():
                     record_content = f.read()
                 blockchain_data[service] = json.loads(record_content)
 
-        res_data.append(
+        data.append(
             dict(
                 manifest=json.loads(blob_content),
                 pistis=dict(
@@ -183,5 +187,4 @@ def search_manifest():
             )
         )
 
-    return jsonify(data=res_data)
-
+    return data
