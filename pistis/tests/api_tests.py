@@ -6,11 +6,12 @@ import json
 import shutil
 
 class ApiTestCase(unittest.TestCase):
+    maxDiff = None
+
     def setUp(self):
         pistis.app.testing = True
         pistis.app.config['STORE_ROOT'] = 'store_test'
         self.client = pistis.app.test_client()
-        self.maxDiff = None
 
     def tearDown(self):
         pass

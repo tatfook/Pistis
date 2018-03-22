@@ -3,15 +3,16 @@
     <head>
         {% block head %}
         <meta charset="UTF-8"/>
-        <title>pistis</title>
+        <title>Pistis</title>
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='semantic-ui/semantic.min.css') }}">
+        <script src="{{ url_for('static', filename='jquery-3.1.1.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='semantic-ui/semantic.min.js') }}"></script>
         {% endblock %}
     </head>
     <body>
-        <div id="content">
         {% block content %}
         {% endblock %}
-        </div>
         <div id="footer">
         {% block footer %}
         {% endblock %}

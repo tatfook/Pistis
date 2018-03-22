@@ -18,7 +18,8 @@ def test_commmand():
 class Config(object):
     STORE_ROOT = 'store'
     JSONIFY_PRETTYPRINT_REGULAR = False
-
+    # set the secret key.  keep this really secret:
+    SECRET_KEY = b',\x90\xebYS\xd1\xfa(%\x91s\xf3\x9a\xb9^\xe1x\xf5\xb3\xac\x98\xf7i\xaf\x18V'
     JOBS = [
         {
             'id': 'snapshot',
@@ -28,6 +29,7 @@ class Config(object):
         }
     ]
     SCHEDULER_API_ENABLED = True
+
 
 def job1(a, b):
     print(str(a) + ' ' + str(b))
@@ -50,4 +52,5 @@ scheduler.init_app(app)
 # scheduler.start()
 
 
+import pistis.apis
 import pistis.views
