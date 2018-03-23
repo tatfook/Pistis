@@ -5,26 +5,27 @@ import unittest
 from dulwich import porcelain as git
 import glob
 import time
+from pistis.log import logger
 
 
 class Config(object):
     STORE_ROOT = 'store'
     JSONIFY_PRETTYPRINT_REGULAR = False
-    # set the secret key.  keep this really secret:
+    # set the secret key. keep this really secret:
     SECRET_KEY = b',\x90\xebYS\xd1\xfa(%\x91s\xf3\x9a\xb9^\xe1x\xf5\xb3\xac\x98\xf7i\xaf\x18V'
-    JOBS = [
-        {
-            'id': 'snapshot',
-            'func': 'pistis:snapshot',
-            'trigger': 'interval',
-            'seconds': 30
-        }
-    ]
+    JOBS = [{
+        'id': 'snapshot',
+        'func': 'pistis:snapshot',
+        'trigger': 'interval',
+        'minutes': 10
+    }]
     SCHEDULER_API_ENABLED = True
 
-app = Flask(__name__)
 
+app = Flask(__name__)
 app.config.from_object(Config())
+
+repo = git.Repo(app.config['STORE_ROOT'])
 
 
 @app.cli.command('test')
@@ -34,25 +35,23 @@ def test_commmand():
     runner.run(discover)
 
 
-def job1(a, b):
-    print(str(a) + ' ' + str(b))
-
 def snapshot():
     store_root = app.config['STORE_ROOT']
-    files = glob.glob('%s/**/*.json'%store_root, recursive=True)
-    print(store_root, files)
+    files = glob.glob('%s/**/*.json' % store_root, recursive=True)
 
     git.add(repo=store_root, paths=files)
-    print('git add')
-    git.commit(repo=store_root, message='manifest snapshot at %s'%(time.strftime("%Y-%m-%d %H:%M:%S %Z%z", time.localtime())))
-    print('git commit')
+
+    git.commit(
+        repo=store_root,
+        message='manifest snapshot at %s' %
+        (time.strftime("%Y-%m-%d %H:%M:%S %Z%z", time.localtime())))
+    logger.info('create new git commit')
 
 
 scheduler = APScheduler()
 scheduler.init_app(app)
-# scheduler.start()
-
-repo = git.Repo(app.config['STORE_ROOT'])
+scheduler.start()
+logger.info('create git snapshot scheduler')
 
 import pistis.apis
 import pistis.views

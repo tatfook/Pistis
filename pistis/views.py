@@ -6,19 +6,19 @@ from urllib.parse import urlparse
 from pistis.apis import search_manifest
 from pistis.apis import get_manifest
 
+
 @app.route('/')
 def index():
     return redirect(url_for('search_manifest_page'))
 
+
 def parse_url(url):
     # http://keepwork.com/dukes/paracraft
     p = urlparse(url.strip('/'))
-    host = p.hostname      # keepwork.com
-    path = p.path          # /dukes/paracraft
+    host = p.hostname  # keepwork.com
+    path = p.path  # /dukes/paracraft
 
-    field_map = {
-        'keepwork.com': 'keepwork'
-    }
+    field_map = {'keepwork.com': 'keepwork'}
     field = field_map[host]
 
     (author, work) = path.strip('/').split('/')
@@ -55,6 +55,4 @@ def cert_page():
     (field, author, work) = parse_url(url)
 
     return render_template(
-        'cert.html',
-        data=get_manifest(field, author, work, pistis)
-    )
+        'cert.html', data=get_manifest(field, author, work, pistis))
