@@ -20,12 +20,22 @@
         </div>
     </div>
 
+    {% if data|length == 0 %}
+    <div class="ui secondary segment">
+        <p>
+            No record found for url {{url}}
+        </p>
+    </div>
+    {% endif %}
+
     {% for item in data %}
     <div class="ui segment attached">
         <div class="ui header">
             {{ item.manifest.author }}/{{ item.manifest.work }}
             <div class="sub header">
-                {{ item.manifest.identity }}
+                <a target="_blank" href="http://git.keepwork.com/gitlab_rls_{{author}}/keepwork{{work}}/tree/{{item.manifest.identity}}">
+                  {{ item.manifest.identity }}
+                </a>
             </div>
         </div>
         <p>

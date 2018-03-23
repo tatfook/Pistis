@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 load db site_data_source.db
@@ -49,7 +49,7 @@ loop all entries:
 
     {updateFlag=0,dataSourceId=158,sitename="__keepwork__",projectId=403,rootPath="",dataSourceName="内置gitlab",username="wxaxiaoyao",lastCommitId="c1095b1c1bc97197894ea0446e42f27efd533401",projectName="keepworkdatasource",}
 
-find lastCommitId
+grep lastCommitId
 
 
 pattern:
@@ -71,13 +71,12 @@ import requests
 import logging
 import json
 import argparse
+import os
 
 logging.basicConfig(level=logging.INFO)
 
-pistis_server = None
-
 def vips():
-    conn = sqlite3.connect('vip.db')
+    conn = sqlite3.connect(os.path.join(DBDIR, 'vip.db'))
     c = conn.cursor()
 
     author_re = re.compile(r'username="(.*?)",')
@@ -93,10 +92,10 @@ def vips():
     conn.close()
 
 
-def works(vip=False):
+def works():
     vip_set = set(vips())
 
-    conn = sqlite3.connect('site_data_source.db')
+    conn = sqlite3.connect(os.path.join(DBDIR, 'site_data_source.db'))
     c = conn.cursor()
 
     identity_re = re.compile(r'lastCommitId="(.*?)",')
@@ -115,16 +114,16 @@ def works(vip=False):
         if identity == 'master':
             continue
 
-        if (author in vip_set) == vip:
+        if (author in vip_set) == VIP:
             yield (author, work, identity)
 
     conn.close()
 
 
-def witness(server, vip):
-    api_addr = '%s/api/v1/manifest' % server
+def witness():
+    api_addr = '%s/api/v1/manifest' % SERVER
 
-    for author, work, identity in works(vip=vip):
+    for author, work, identity in works():
         post_data = dict(
             field='keepwork',
             author=author,
@@ -139,13 +138,29 @@ def witness(server, vip):
         if 'error' in r.json():
             raise Exception("response error", r.json()['error'])
 
-        logging.info('witness %s', json.dumps(post_data))
+        logging.info('upload %s', json.dumps(post_data))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("server", help="pistis server address, e.g. http://localhost:5000/")
     parser.add_argument("-v", "--vip", help="vip users or not", action="store_true", default=False)
+    parser.add_argument("-d", "--dbdir", help="dir that tabledb files locate", default='.')
 
     args = parser.parse_args()
-    witness(args.server.strip('/'), args.vip)
+
+    db_files = ['site_data_source.db', 'vip.db']
+    for f in db_files:
+        db_path = os.path.join(args.dbdir, f)
+        if not os.path.exists(db_path):
+            exit('%s not exists in dir %s' % (f, args.dbdir))
+        if not os.access(db_path, os.R_OK):
+            exit('%s in dir %s is not readable' % (f, args.dbdir))
+
+    global DBDIR, VIP, SERVER
+
+    DBDIR = args.dbdir
+    SERVER = args.server.strip('/')
+    VIP = args.vip
+
+    witness()
