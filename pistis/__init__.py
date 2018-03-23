@@ -6,14 +6,6 @@ from dulwich import porcelain as git
 import glob
 import time
 
-app = Flask(__name__)
-
-@app.cli.command('test')
-def test_commmand():
-    discover = unittest.defaultTestLoader.discover('.', pattern='*_tests.py')
-    runner = unittest.TextTestRunner(verbosity=2)
-    runner.run(discover)
-
 
 class Config(object):
     STORE_ROOT = 'store'
@@ -30,6 +22,17 @@ class Config(object):
     ]
     SCHEDULER_API_ENABLED = True
 
+app = Flask(__name__)
+
+app.config.from_object(Config())
+
+
+@app.cli.command('test')
+def test_commmand():
+    discover = unittest.defaultTestLoader.discover('.', pattern='*_tests.py')
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(discover)
+
 
 def job1(a, b):
     print(str(a) + ' ' + str(b))
@@ -45,12 +48,11 @@ def snapshot():
     print('git commit')
 
 
-app.config.from_object(Config())
-
 scheduler = APScheduler()
 scheduler.init_app(app)
 # scheduler.start()
 
+repo = git.Repo(app.config['STORE_ROOT'])
 
 import pistis.apis
 import pistis.views

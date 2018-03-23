@@ -1,6 +1,6 @@
 from flask import session, redirect, url_for, escape, request
 from flask import render_template, json, jsonify
-from pistis import app, git
+from pistis import app, git, repo
 import os
 import io
 
@@ -134,15 +134,11 @@ def search_manifest_api():
         data=search_manifest(field, query['author'], query['work'])
     )
 
+
 def search_manifest(field, author, work):
     store_root = app.config['STORE_ROOT']
-    repo = git.Repo(store_root)
 
-    path = 'v1/manifests/{field}/{author}/{work}/manifest.json'.format(
-        field=field,
-        author=author,
-        work=work
-    )
+    path = store_path(field, author, work)
 
     output = io.StringIO()
     git.log(repo=store_root, paths=[path.encode()], outstream=output)
@@ -157,34 +153,56 @@ def search_manifest(field, author, work):
     for commit_hash in map(lambda l: l.split()[-1],
                            filter(lambda line: line.startswith('commit: '),
                                   commits)):
-        output = io.StringIO()
-        git.ls_tree(repo=store_root, treeish=commit_hash.encode(), outstream=output)
-        trees = output.getvalue().splitlines()
-        output.close()
+        manifest = get_manifest(field, author, work, commit_hash)
 
-        blob_hash = list(
-            map(lambda l: l.split()[2],
-                filter(lambda line: line.endswith(path), trees))
-        )[0]
-        blob = repo.get_object(blob_hash.encode())
-        blob_content = blob.data.decode()
+        if manifest is None:
+            continue
 
-        blockchain_data = dict()
-        for service in ['ethereum', 'bitcoin']:
-            record_path = '%s/v1/blockchains/%s/%s/record.json'%(store_root, commit_hash, service)
-            if os.path.exists(record_path):
-                with open(record_path, 'r') as f:
-                    record_content = f.read()
-                blockchain_data[service] = json.loads(record_content)
-
-        data.append(
-            dict(
-                manifest=json.loads(blob_content),
-                pistis=dict(
-                    hash=commit_hash
-                ),
-                blockchain=blockchain_data
-            )
-        )
+        data.append(manifest)
 
     return data
+
+
+def store_path(field, author, work):
+    path = 'v1/manifests/{field}/{author}/{work}/manifest.json'.format(
+        field=field,
+        author=author,
+        work=work
+    )
+    return path
+
+
+def get_manifest(field, author, work, commit_hash):
+    store_root = app.config['STORE_ROOT']
+    path = store_path(field, author, work)
+
+    output = io.StringIO()
+    git.ls_tree(repo=store_root, treeish=commit_hash.encode(), outstream=output)
+    trees = output.getvalue().splitlines()
+    output.close()
+
+    if len(trees) == 0:
+        return None
+
+    blob_hash = list(
+        map(lambda l: l.split()[2],
+            filter(lambda line: line.endswith(path), trees))
+    )[0]
+    blob = repo.get_object(blob_hash.encode())
+    blob_content = blob.data.decode()
+
+    blockchain_data = dict()
+    for service in ['ethereum', 'bitcoin']:
+        record_path = '%s/v1/blockchains/%s/%s/record.json'%(store_root, commit_hash, service)
+        if os.path.exists(record_path):
+            with open(record_path, 'r') as f:
+                record_content = f.read()
+            blockchain_data[service] = json.loads(record_content)
+
+    return dict(
+        manifest=json.loads(blob_content),
+        pistis=dict(
+            hash=commit_hash
+        ),
+        blockchain=blockchain_data
+    )

@@ -13,9 +13,9 @@
                         <input name="query" type="text" placeholder="dukes/paracraft" value="{{author}}/{{work}}">
                         <i class="circular link search icon button submit"></i>
                     </div>
-                    <div class="ui error message">
-                    </div>
                 </div>
+            </div>
+            <div class="ui error message">
             </div>
         </div>
     </div>
@@ -43,7 +43,14 @@
             bitcoin: {{ item.blockchain.bitcoin.hash }}
         </p>
         {% endif %}
+
+        {% if not item.blockchain.bitcoin or item.blockchain.ethereum %}
+        <a target="_blank" href="{{ url_for('cert_page', url=url, pistis=item.pistis.hash) }}">
+            show me the cert
+        </a>
+        {% endif %}
     </div>
+
     {% if not item.blockchain.bitcoin and not item.blockchain.ethereum %}
     <div class="ui bottom attached warning message">
         <i class="warning icon"></i> Manifest has not authenticated by public blockchain

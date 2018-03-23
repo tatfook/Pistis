@@ -4,20 +4,14 @@ from pistis import app, git
 from urllib.parse import urlparse
 
 from pistis.apis import search_manifest
+from pistis.apis import get_manifest
 
 @app.route('/')
 def index():
     return redirect(url_for('search_manifest_page'))
 
-@app.route('/page/v1/search', methods=['GET'])
-def search_manifest_page():
-    query = request.args
-    if 'url' not in query:
-        return render_template('search.html')
-
+def parse_url(url):
     # http://keepwork.com/dukes/paracraft
-    url = query['url']
-
     p = urlparse(url.strip('/'))
     host = p.hostname      # keepwork.com
     path = p.path          # /dukes/paracraft
@@ -29,10 +23,38 @@ def search_manifest_page():
 
     (author, work) = path.strip('/').split('/')
 
+    return (field, author, work)
+
+
+@app.route('/page/v1/search', methods=['GET'])
+def search_manifest_page():
+    query = request.args
+    if 'url' not in query:
+        return render_template('search.html')
+
+    url = query['url']
+    (field, author, work) = parse_url(url)
+
     return render_template(
         'manifest.html',
         author=author,
         work=work,
-        data=search_manifest(field, author, work)
+        url=url,
+        data=search_manifest(field, author, work),
     )
 
+
+@app.route('/page/v1/cert', methods=['GET'])
+def cert_page():
+    q = request.args
+    if 'url' not in q or 'pistis' not in q:
+        return render_template('error.html', error='incomplete cert url')
+
+    url = q['url']
+    pistis = q['pistis']
+    (field, author, work) = parse_url(url)
+
+    return render_template(
+        'cert.html',
+        data=get_manifest(field, author, work, pistis)
+    )
