@@ -31,6 +31,8 @@ def search_manifest_page():
 
     return render_template(
         'manifest.html',
+        author=author,
+        work=work,
         data=search_manifest(field, author, work)
     )
 
