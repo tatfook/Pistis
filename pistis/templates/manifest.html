@@ -54,7 +54,7 @@
         </p>
         {% endif %}
 
-        {% if item.blockchain.bitcoin or item.blockchain.ethereum %}
+        {% if True or item.blockchain.bitcoin or item.blockchain.ethereum %}
         <a target="_blank" href="{{ url_for('cert_page', url=url, pistis=item.pistis.hash) }}">
             show me the cert
         </a>

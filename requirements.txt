@@ -25,7 +25,6 @@ MarkupSafe==1.0
 parso==0.1.1
 pexpect==4.4.0
 pickleshare==0.7.4
--e git+git@github.com:tatfook/Pistis.git@a8814e3fe33f4984410a291600c7265fa25801c0#egg=pistis
 prompt-toolkit==1.0.15
 ptyprocess==0.5.2
 py-solc==2.1.0

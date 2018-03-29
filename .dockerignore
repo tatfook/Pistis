@@ -1,0 +1,6 @@
+.venv
+pistis.egg-info
+.git
+
+store
+store_test

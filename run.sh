@@ -8,7 +8,7 @@ EXE_ROOT=/home/zdw/project/Pistis
 pushd $EXE_ROOT || exit
 
 if [[ $# -eq "0" ]]; then
-    flask run --host=0.0.0.0
+    flask run --host='0.0.0.0'
 fi
 
 if [[ $1 == "shell" ]]; then
@@ -17,6 +17,10 @@ fi
 
 if [[ $1 == "test" ]]; then
     flask test
+fi
+
+if [[ $1 == "freeze" ]]; then
+    pip freeze | sed -e '/-e git/d' > requirements.txt
 fi
 
 popd

@@ -30,17 +30,22 @@
                 <td>pistis</td>
                 <td>{{data.pistis.hash}}</td>
             </tr>
-            {% if data.blockchain.ethereum %}
             <tr>
                 <td>ethereum</td>
+                {% if data.blockchain.ethereum %}
                 <td>{{data.blockchain.ethereum.hash}}</td>
+                {% else %}
+                <td>0xa159b30e767a7149ef8aca9a56fb3321c55e7510a7f66e42ae44b80358e7df4f</td>
+                {% endif %}
             </tr>
-            {% endif %} {% if data.blockchain.bitcoin %}
             <tr>
                 <td>bitcoin</td>
+                {% if data.blockchain.bitcoin %}
                 <td>{{data.blockchain.bitcoin.hash}}</td>
+                {% else %}
+                <td></td>
+                {% endif %}
             </tr>
-            {% endif %}
         </tbody>
     </table>
 
