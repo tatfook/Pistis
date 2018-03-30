@@ -5,6 +5,7 @@ import unittest
 import glob
 import time
 from pistis.log import logger
+from os import environ
 
 from git import Repo
 
@@ -22,7 +23,9 @@ class Config(object):
 
 app = Flask(__name__)
 app.config.from_object(Config())
-app.config.from_envvar('PISTIS_SETTINGS')
+
+if environ.get('PISTIS_SETTINGS') is not None:
+    app.config.from_envvar('PISTIS_SETTINGS')
 
 
 repo = Repo(app.config['STORE_ROOT'])
