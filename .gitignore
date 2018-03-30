@@ -5,3 +5,4 @@ __pycache__
 store_test
 store
 *.log
+*.prof

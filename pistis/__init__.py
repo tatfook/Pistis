@@ -25,6 +25,7 @@ class Config(object):
 app = Flask(__name__)
 app.config.from_object(Config())
 
+
 repo = git.Repo(app.config['STORE_ROOT'])
 
 
