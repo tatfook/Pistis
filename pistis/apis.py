@@ -136,23 +136,14 @@ def search_manifest_api():
 
 
 def search_manifest(field, author, work):
-    store_root = app.config['STORE_ROOT']
-
     path = store_path(field, author, work)
-
-    output = io.StringIO()
-    git.log(repo=store_root, paths=[path.encode()], outstream=output)
-    commits = output.getvalue().splitlines()
-    output.close()
+    commits = git.log('--pretty=format:%H', '--', path).splitlines()
 
     if len(commits) == 0:
         return []
 
-
     data = []
-    for commit_hash in map(lambda l: l.split()[-1],
-                           filter(lambda line: line.startswith('commit: '),
-                                  commits)):
+    for commit_hash in commits:
         manifest = get_manifest(field, author, work, commit_hash)
 
         if manifest is None:
@@ -176,20 +167,12 @@ def get_manifest(field, author, work, commit_hash):
     store_root = app.config['STORE_ROOT']
     path = store_path(field, author, work)
 
-    output = io.StringIO()
-    git.ls_tree(repo=store_root, treeish=commit_hash.encode(), outstream=output)
-    trees = output.getvalue().splitlines()
-    output.close()
-
-    if len(trees) == 0:
+    blob_info = git.ls_tree(commit_hash, path)
+    if blob_info == '':
         return None
 
-    blob_hash = list(
-        map(lambda l: l.split()[2],
-            filter(lambda line: line.endswith(path), trees))
-    )[0]
-    blob = repo.get_object(blob_hash.encode())
-    blob_content = blob.data.decode()
+    blob_hash = blob_info.split()[2]
+    blob_content = git.cat_file('-p', blob_hash)
 
     blockchain_data = dict()
     for service in ['ethereum', 'bitcoin']:

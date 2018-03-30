@@ -2,17 +2,15 @@ from flask import Flask
 from flask_apscheduler import APScheduler
 
 import unittest
-from dulwich import porcelain as git
 import glob
 import time
 from pistis.log import logger
 
+from git import Repo
+
 
 class Config(object):
-    STORE_ROOT = 'store'
     JSONIFY_PRETTYPRINT_REGULAR = False
-    # set the secret key. keep this really secret:
-    SECRET_KEY = b',\x90\xebYS\xd1\xfa(%\x91s\xf3\x9a\xb9^\xe1x\xf5\xb3\xac\x98\xf7i\xaf\x18V'
     JOBS = [{
         'id': 'snapshot',
         'func': 'pistis:snapshot',
@@ -24,9 +22,11 @@ class Config(object):
 
 app = Flask(__name__)
 app.config.from_object(Config())
+app.config.from_envvar('PISTIS_SETTINGS')
 
 
-repo = git.Repo(app.config['STORE_ROOT'])
+repo = Repo(app.config['STORE_ROOT'])
+git = repo.git
 
 
 @app.cli.command('test')
@@ -37,15 +37,10 @@ def test_commmand():
 
 
 def snapshot():
-    store_root = app.config['STORE_ROOT']
-    files = glob.glob('%s/**/*.json' % store_root, recursive=True)
+    git.add('.')
+    git.commit('--allow-empty', '-m',
+               'manifest snapshot at %s' % (time.strftime("%Y-%m-%d %H:%M:%S %Z%z", time.localtime())))
 
-    git.add(repo=store_root, paths=files)
-
-    git.commit(
-        repo=store_root,
-        message='manifest snapshot at %s' %
-        (time.strftime("%Y-%m-%d %H:%M:%S %Z%z", time.localtime())))
     logger.info('create new git commit')
 
 
