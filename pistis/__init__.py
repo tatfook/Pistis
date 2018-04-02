@@ -5,27 +5,20 @@ import unittest
 import glob
 import time
 from pistis.log import logger
+from pistis.config import DebugConfig, TestConfig, ProdConfig
 from os import environ
-
 from git import Repo
 
 
-class Config(object):
-    JSONIFY_PRETTYPRINT_REGULAR = False
-    JOBS = [{
-        'id': 'snapshot',
-        'func': 'pistis:snapshot',
-        'trigger': 'interval',
-        'minutes': 10
-    }]
-    SCHEDULER_API_ENABLED = True
-
-
 app = Flask(__name__)
-app.config.from_object(Config())
 
-if environ.get('PISTIS_SETTINGS') is not None:
-    app.config.from_envvar('PISTIS_SETTINGS')
+env = environ.get('PISTIS_ENV')
+if env == 'DEBUG':
+    app.config.from_object(DebugConfig())
+elif env == 'TEST':
+    app.config.from_object(TestConfig())
+else:
+    app.config.from_object(ProdConfig())
 
 
 repo = Repo(app.config['STORE_ROOT'])

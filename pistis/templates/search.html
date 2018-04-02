@@ -1,7 +1,9 @@
 {% extends "layout.html" %} {% block content %}
 <div class="ui middle aligned center aligned text container">
     <div class="column">
-        <img alt="pistis logo" src="{{ url_for('static', filename='logo.png') }}" />
+        <a href="/">
+            <img alt="pistis logo" src="{{ url_for('static', filename='logo.png') }}" />
+        </a>
 
         <div class="ui big form">
             <div class="field ui fluid icon labeled input">
@@ -15,7 +17,6 @@
             <div class="ui error message">
             </div>
         </div>
-
 
     </div>
 </div>
