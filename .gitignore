@@ -6,3 +6,4 @@ store_test
 store
 *.log
 *.prof
+.#*

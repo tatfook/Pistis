@@ -33,14 +33,25 @@ import io
 #   v1/
 #     manifests/
 #       ${field}/                    only keepwork
-#         ${author}/
-#           ${work}/
-#             manifest.json
+#         cluster/                 dirname: first 3 character of author
+#           ${author}/
+#             ${work}/
+#               manifest.json
 #     blockchains/
-#       ${store.git commit hash}/
-#         ${service}/   ethereum or bitcoin
-#           record.json
+#       cluster/                   dirname: first 2 chars of store.git commit hash
+#         ${store.git commit hash}/
+#           ${service}/   ethereum or bitcoin
+#             record.json
 #
+def cluster_name(child):
+    # gather children into one cluster
+    # first $cluster_param chars as cluster name
+    cluster_param = 2
+
+    if len(child) <= cluster_param:
+        return child
+    return child[:cluster_param]
+
 @app.route('/api/v1/manifest', methods=['POST'])
 def add_manifest():
     manifest = request.get_json(silent=True)
@@ -62,9 +73,10 @@ def add_manifest():
 
     # write file
     store_root = app.config['STORE_ROOT']
-    store_path = '{root}/v1/manifests/{field}/{author}/{work}/manifest.json'.format(
+    store_path = '{root}/v1/manifests/{field}/{cluster}/{author}/{work}/manifest.json'.format(
         root=store_root,
         field=manifest['field'],
+        cluster=cluster_name(manifest['author']),
         author=manifest['author'],
         work=manifest['work'],
     )
@@ -155,8 +167,9 @@ def search_manifest(field, author, work):
 
 
 def store_path(field, author, work):
-    path = 'v1/manifests/{field}/{author}/{work}/manifest.json'.format(
+    path = 'v1/manifests/{field}/{cluster}/{author}/{work}/manifest.json'.format(
         field=field,
+        cluster=cluster_name(author),
         author=author,
         work=work
     )
@@ -176,7 +189,12 @@ def get_manifest(field, author, work, commit_hash):
 
     blockchain_data = dict()
     for service in ['ethereum', 'bitcoin']:
-        record_path = '%s/v1/blockchains/%s/%s/record.json'%(store_root, commit_hash, service)
+        record_path = '{root}/v1/blockchains/{cluster}/{commit}/{service}/record.json'.format(
+            root=store_root,
+            cluster=cluster_name(commit_hash),
+            commit=commit_hash,
+            service=service
+        )
         if os.path.exists(record_path):
             with open(record_path, 'r') as f:
                 record_content = f.read()

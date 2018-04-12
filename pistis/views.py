@@ -13,7 +13,7 @@ def index():
 
 
 def parse_url(url):
-    # http://keepwork.com/dukes/paracraft
+    # http{,s}://keepwork.com/dukes/paracraft
     p = urlparse(url.strip('/'))
     host = p.hostname  # keepwork.com
     path = p.path  # /dukes/paracraft
