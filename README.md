@@ -1,8 +1,35 @@
 # Pistis
 
-A server makes work trustful using SHA, GPG and BlockChain technology
+A server makes work trustful using BlockChain technology
 
 > Pistis [name origin](https://en.wikipedia.org/wiki/Pistis)
+
+
+## todos
+
+技术问题
+- UI
+  - 页面设计，保持风格统一
+  - 证书设计
+- 查询页分页
+- 查询页，证书页，添加日期显示
+- 内部数据store，将author，pistis commit id添加中间级，负载均衡，避免同一目录下，文件太多，影响git效率
+- 内部数据store，周期性将git提交github/gitlab，更新备份
+- bitcoin认证的方式暂不清楚，目前有ethereum也足够
+
+
+非技术问题
+- 购买ether(以太币)
+  - 囯内对于购买虚拟货币进行限制，没有官方的途径进行购买，没有发票
+  - 国内只能通过C2C途径，没有安全保障
+  - 或者转为美元，从国外市场购买
+  - 购买量暂时需要 1 单位ether 即可
+
+
+
+
+
+
 
 ## 概念设计
 
@@ -442,14 +469,4 @@ manifest以filed来分类，目前有如下几类
 
 ### 限制
 数据一经认证，便存在于信任历史中，无法删除
-
-
-## todos
-
-- help page: how to verify
-- help page: how it works
-- server log tool
-- server cron task
-- server 容错和收敛性
-- private token 权限认证
 
