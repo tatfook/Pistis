@@ -6,4 +6,4 @@ app.config['PROFILE'] = True
 app.config['SCHEDULER_API_ENABLED'] = False
 
 app.wsgi_app = ProfilerMiddleware(app.wsgi_app, profile_dir='.')
-app.run(debug = True)
+app.run(host='0.0.0.0')

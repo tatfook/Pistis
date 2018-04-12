@@ -2,14 +2,14 @@
 
 
 export FLASK_APP=pistis
-export FLASK_DEBUG=1
+# export FLASK_DEBUG=1
 
 EXE_ROOT=/home/zdw/project/Pistis
 pushd $EXE_ROOT || exit
 
 
 export PISTIS_ENV=DEBUG
-if [[ $# -eq "0" ]]; then
+if [[ $1 == "debug" ]]; then
     flask run --host='0.0.0.0'
 fi
 
