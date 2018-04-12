@@ -1,6 +1,9 @@
 from flask import session, redirect, url_for, escape, request
 from flask import render_template, json, jsonify
 from pistis import app, git, repo
+
+from datetime import datetime, timezone
+import time
 import os
 import io
 
@@ -33,7 +36,7 @@ import io
 #   v1/
 #     manifests/
 #       ${field}/                    only keepwork
-#         cluster/                 dirname: first 3 character of author
+#         cluster/                 dirname: first 2 character of author
 #           ${author}/
 #             ${work}/
 #               manifest.json
@@ -149,6 +152,7 @@ def search_manifest_api():
 
 def search_manifest(field, author, work):
     path = store_path(field, author, work)
+    # %ct commit time
     commits = git.log('--pretty=format:%H', '--', path).splitlines()
 
     if len(commits) == 0:
@@ -175,7 +179,6 @@ def store_path(field, author, work):
     )
     return path
 
-
 def get_manifest(field, author, work, commit_hash):
     store_root = app.config['STORE_ROOT']
     path = store_path(field, author, work)
@@ -200,10 +203,20 @@ def get_manifest(field, author, work, commit_hash):
                 record_content = f.read()
             blockchain_data[service] = json.loads(record_content)
 
+    timestamp = git.show('-s','--pretty=format:%ct', commit_hash)
+
     return dict(
         manifest=json.loads(blob_content),
         pistis=dict(
-            hash=commit_hash
+            hash=commit_hash,
+            timestamp=timestamp,
         ),
         blockchain=blockchain_data
     )
+
+
+@app.template_filter('utc')
+def utc_filter(timestamp_str):
+    epoch = float(timestamp_str)
+    date = datetime.fromtimestamp(epoch, timezone.utc)
+    return date.strftime("%d %b %Y %H:%M:%S %Z")

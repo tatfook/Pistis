@@ -79,7 +79,8 @@ class ApiTestCase(unittest.TestCase):
                             identity='b0112d212a67c9b3b7e305e53946751fcfcbf4d3'
                         ),
                         pistis=dict(
-                            hash='b1beda7644d7b992926d0bfe177baeb25d87872c'
+                            hash='b1beda7644d7b992926d0bfe177baeb25d87872c',
+                            timestamp='1523518286'
                         ),
                         blockchain=dict(
                             ethereum=dict(
@@ -105,7 +106,8 @@ class ApiTestCase(unittest.TestCase):
                             identity='5c1e9ce71b7862d568a75ef5b13562993cc1f9b4'
                         ),
                         pistis=dict(
-                            hash='b1beda7644d7b992926d0bfe177baeb25d87872c'
+                            hash='b1beda7644d7b992926d0bfe177baeb25d87872c',
+                            timestamp='1523518286'
                         ),
                         blockchain=dict(
                             ethereum=dict(

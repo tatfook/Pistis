@@ -41,10 +41,10 @@
             </div>
         </div>
         <p>
-            authenticated by
+            authenticated at {{ item.pistis.timestamp | utc }}
         </p>
         <p>
-            pistis: {{ item.pistis.hash }}
+            pistis {{ item.pistis.hash }}
         </p>
         {% if item.blockchain.ethereum %}
         <p>

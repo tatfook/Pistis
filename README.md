@@ -12,10 +12,13 @@ A server makes work trustful using BlockChain technology
   - 页面设计，保持风格统一
   - 证书设计
 - 查询页分页
-- 查询页，证书页，添加日期显示
-- 内部数据store，将author，pistis commit id添加中间级，负载均衡，避免同一目录下，文件太多，影响git效率
+```
+--max-count=<number>
+    Limit the number of commits to output.
+--skip=<number>
+    Skip number commits before starting to show the commit output.
+```
 - 内部数据store，周期性将git提交github/gitlab，更新备份
-- bitcoin认证的方式暂不清楚，目前有ethereum也足够
 
 
 非技术问题
