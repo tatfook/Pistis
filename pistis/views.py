@@ -32,7 +32,13 @@ def search_manifest_page():
     if 'url' not in query:
         return render_template('search.html')
 
+    if 'page' not in query:
+        page = 0
+    else:
+        page = query['page']
+
     url = query['url']
+    page_size = 5
     (field, author, work) = parse_url(url)
 
     return render_template(
@@ -40,7 +46,9 @@ def search_manifest_page():
         author=author,
         work=work,
         url=url,
-        data=search_manifest(field, author, work),
+        page=page,
+        page_size=page_size,
+        data=search_manifest(field, author, work, page),
     )
 
 

@@ -146,14 +146,20 @@ def search_manifest_api():
         return jsonify(error='incomplete query condition')
 
     return jsonify(
-        data=search_manifest(field, query['author'], query['work'])
+        data=search_manifest(field, query['author'], query['work'], None)
     )
 
 
-def search_manifest(field, author, work):
+def search_manifest(field, author, work, page):
+    # if page is None, means search all manifests
     path = store_path(field, author, work)
-    # %ct commit time
-    commits = git.log('--pretty=format:%H', '--', path).splitlines()
+    if page is None:
+        # %ct commit time
+        commits = git.log('--pretty=format:%H', '--', path).splitlines()
+    else:
+        # page size is fixed: 5
+        page_size = 5
+        commits = git.log('--pretty=format:%H', '--max-count=%s'%page_size, '--skip=%s'%(page*page_size), '--', path).splitlines()
 
     if len(commits) == 0:
         return []

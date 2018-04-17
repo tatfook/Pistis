@@ -28,9 +28,7 @@
             No record found for url {{url}}
         </p>
     </div>
-    {% endif %}
-
-    {% for item in data %}
+    {% endif %} {% for item in data %}
     <div class="ui segment attached">
         <div class="ui header">
             {{ item.manifest.author }}/{{ item.manifest.work }}
@@ -54,13 +52,10 @@
         <p>
             bitcoin: {{ item.blockchain.bitcoin.hash }}
         </p>
-        {% endif %}
-
-        {% if True or item.blockchain.bitcoin or item.blockchain.ethereum %}
+        {% endif %} {% if True or item.blockchain.bitcoin or item.blockchain.ethereum %}
         <a target="_blank" href="{{ url_for('cert_page', url=url, pistis=item.pistis.hash) }}">
             show me the cert
-        </a>
-        {% endif %}
+        </a> {% endif %}
     </div>
 
     {% if not item.blockchain.bitcoin and not item.blockchain.ethereum %}
@@ -68,6 +63,24 @@
         <i class="warning icon"></i> Manifest has not authenticated by public blockchain
     </div>
     {% endif %} {% endfor %}
+
+    <div class="ui two bottom attached buttons">
+        {% if page|int == 0 %}
+        <a class="ui button" href="#">
+        {% else %}
+        <a class="ui blue button" href="{{ url_for('search_manifest_page', url=url, page=page|int -1) }}">
+        {% endif %}
+            <i class="left arrow icon"></i>Prev Page
+        </a>
+        <div class="or"></div>
+        {% if data|length < page_size|int %}
+        <a class="ui button" href="#">
+        {% else %}
+        <a class="ui blue button" href="{{ url_for('search_manifest_page', url=url, page=page|int +1) }}">
+        {% endif %}
+            Next Page<i class="right arrow icon"></i>
+        </a>
+    </div>
 
 </div>
 {% endblock %} {% block footer %}
