@@ -35,7 +35,7 @@ def search_manifest_page():
     if 'page' not in query:
         page = 0
     else:
-        page = query['page']
+        page = int(query['page'])
 
     url = query['url']
     page_size = 5

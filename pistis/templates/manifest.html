@@ -33,24 +33,25 @@
         <div class="ui header">
             {{ item.manifest.author }}/{{ item.manifest.work }}
             <div class="sub header">
-                <a target="_blank" href="http://git.keepwork.com/gitlab_rls_{{author}}/keepwork{{work}}/tree/{{item.manifest.identity}}">
-                  {{ item.manifest.identity }}
-                </a>
+                {{ item.pistis.timestamp | utc }}
             </div>
         </div>
         <p>
-            authenticated at {{ item.pistis.timestamp | utc }}
+            work identity:
+                <a target="_blank" href="http://git.keepwork.com/gitlab_rls_{{author}}/keepwork{{work}}/tree/{{item.manifest.identity}}">
+                  {{ item.manifest.identity }}
+                </a>
         </p>
         <p>
-            pistis {{ item.pistis.hash }}
+            pistis identity: {{ item.pistis.hash }}
         </p>
         {% if item.blockchain.ethereum %}
         <p>
-            ethereum: {{ item.blockchain.ethereum.hash }}
+            ethereum identity: {{ item.blockchain.ethereum.hash }}
         </p>
         {% endif %} {% if item.blockchain.bitcoin %}
         <p>
-            bitcoin: {{ item.blockchain.bitcoin.hash }}
+            bitcoin identity: {{ item.blockchain.bitcoin.hash }}
         </p>
         {% endif %} {% if True or item.blockchain.bitcoin or item.blockchain.ethereum %}
         <a target="_blank" href="{{ url_for('cert_page', url=url, pistis=item.pistis.hash) }}">
