@@ -38,6 +38,8 @@ def snapshot():
                'manifest snapshot at %s' % (time.strftime("%Y-%m-%d %H:%M:%S %Z%z", time.localtime())))
 
     logger.info('create new git commit')
+    git.push('origin', 'master')
+    logger.info('sync with github server')
 
 
 scheduler = APScheduler()

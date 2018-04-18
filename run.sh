@@ -4,6 +4,7 @@
 EXE_ROOT=/home/zdw/project/Pistis
 pushd $EXE_ROOT || exit
 
+export GIT_SSH_COMMAND="ssh -i ${EXE_ROOT}/.ssh/id_rsa"
 
 export PISTIS_ENV=DEBUG
 export FLASK_APP=pistis
