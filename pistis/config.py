@@ -4,7 +4,7 @@ class BaseConfig(object):
         'id': 'snapshot',
         'func': 'pistis:snapshot',
         'trigger': 'interval',
-        'minutes': 1
+        'minutes': 10
     }]
     SCHEDULER_API_ENABLED = True
 
