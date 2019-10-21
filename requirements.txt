@@ -45,4 +45,4 @@ urllib3==1.22
 uWSGI==2.0.17
 wcwidth==0.1.7
 web3==3.16.5
-Werkzeug==0.14.1
+Werkzeug==0.15.3
