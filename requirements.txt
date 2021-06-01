@@ -41,7 +41,7 @@ toolz==0.9.0
 tornado==5.0.1
 traitlets==4.3.2
 tzlocal==1.5.1
-urllib3==1.22
+urllib3==1.26.5
 uWSGI==2.0.17
 wcwidth==0.1.7
 web3==3.16.5
