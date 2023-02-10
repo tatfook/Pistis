@@ -13,7 +13,7 @@ Flask==0.12.2
 Flask-APScheduler==1.8.0
 flask-shell-ipython==0.3.0
 idna==2.6
-ipython==6.2.1
+ipython==8.10.0
 ipython-genutils==0.2.0
 itsdangerous==0.24
 jedi==0.11.1
